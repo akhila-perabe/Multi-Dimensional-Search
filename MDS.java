@@ -68,7 +68,11 @@ public class MDS {
 
 	// b. Find(id): return price of item with given id (or 0, if not found).
 	public Money find(long id) {
-		return new Money();
+		Item item = tree.get(id);
+		if (item != null)
+			return item.price;
+		else
+			return ZeroDollars();
 	}
 
 	/*
@@ -87,7 +91,12 @@ public class MDS {
 	 * such item.
 	 */
 	public Money findMinPrice(long n) {
-		return new Money();
+		TreeMap<Money, Integer> item = table.get(n);
+		if (item != null) {
+			return item.firstKey();
+		} else {
+			return ZeroDollars();
+		}
 	}
 
 	/*
@@ -96,8 +105,12 @@ public class MDS {
 	 * such item.
 	 */
 	public Money findMaxPrice(long n) {
-		return new Money();
-	}
+		TreeMap<Money, Integer> item = table.get(n);
+		if (item != null) {
+			return item.lastKey();
+		} else {
+			return ZeroDollars();
+		}	}
 
 	/*
 	 * f. FindPriceRange(n,low,high): given a long int n, find the number of items
@@ -105,7 +118,12 @@ public class MDS {
 	 * given range, [low, high].
 	 */
 	public int findPriceRange(long n, Money low, Money high) {
-		return 0;
+		TreeMap<Money, Integer> item = table.get(n);
+		if (item != null) {
+			return item.subMap(low, high).size();
+		} else {
+			return 0;
+		}	
 	}
 
 	/*
@@ -171,6 +189,10 @@ public class MDS {
 		}
 	}
 
+	private Money ZeroDollars() {
+		return new Money(0,0);
+	}
+	
 	// Do not modify the Money class in a way that breaks LP3Driver.java
 	public static class Money implements Comparable<Money> {
 		long d;
