@@ -1,15 +1,16 @@
-/** Starter code for LP3
- *  @author
+/** 
+ * @author Akhila Perabe (axp178830), Pooja Srinivasan (pxs176230), Shreeya Girish Degaonkar (sxd174830) 
+ * Multi Dimensional Search algorithm 
  */
 
-// Change to your net id
 package axp178830;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.NavigableMap;
 import java.util.TreeMap;
 
-// If you want to create additional classes, place them in this file as subclasses of MDS
 
 public class MDS {
 	
@@ -21,14 +22,18 @@ public class MDS {
 		public Item (Long id, Money price, List<Long> description) {
 			this.id = id;
 			this.price = price;
-			this.description = description;
+			this.description =  new ArrayList<>(description);
 		}
 		
 		public void updateItem(Money price, List<Long> description) {
 			if(description!=null && description.size()!=0) {
-				this.description = description; 
+				this.description = new ArrayList<>(description); 
 			}
 			this.price = price;
+		}
+		
+		public String toString() {
+			return "{Id=" + id + ", Price=" + price + ", Description=" + description + "]}";
 		}
 	}
 	
@@ -57,13 +62,13 @@ public class MDS {
 			item.updateItem(price, list);
 			removeFromTable(item.price, item.description);
 			addToTable(price, list);
-			
+			return 0;
 		} else {
 			// New element
 			tree.put(id, new Item(id, price, list));
 			addToTable(price, list);
+			return 1;
 		}
-		return 0;
 	}
 
 	// b. Find(id): return price of item with given id (or 0, if not found).
@@ -81,7 +86,12 @@ public class MDS {
 	 * exist.
 	 */
 	public long delete(long id) {
-		return 0;
+		Item item = tree.remove(id);
+		if(item != null) {
+			return removeFromTable(item.price, item.description);
+		} else {
+			return 0;
+		}
 	}
 
 	/*
@@ -120,6 +130,11 @@ public class MDS {
 	public int findPriceRange(long n, Money low, Money high) {
 		TreeMap<Money, Integer> item = table.get(n);
 		if (item != null) {
+			if (low.compareTo(high) > 0) {
+				Money temp = low;
+				low = high;
+				high = temp;
+			}
 			return item.subMap(low, high).size();
 		} else {
 			return 0;
@@ -132,7 +147,34 @@ public class MDS {
 	 * Returns the sum of the net increases of the prices.
 	 */
 	public Money priceHike(long l, long h, double rate) {
-		return new Money();
+		if (l > h) {
+			long temp = l;
+			l = h;
+			h = temp;
+		}
+		NavigableMap<Long,Item> map = tree.subMap(l, true, h, true);
+		double totalHike = 0;
+		
+		rate = rate/100;
+		
+		for(Item item: map.values()) {
+			//Remove the current price from table
+			removeFromTable(item.price, item.description);
+			
+			//Update price
+			totalHike += item.price.hikeBy(rate);
+			
+			//Add the new price
+			addToTable(item.price, item.description);
+			
+		}
+		
+		totalHike = Math.floor(totalHike*100);
+		
+		double temp = totalHike/100;
+		int dollar = (int)temp;
+		int cents = (int)((temp - dollar)*100);
+		return new Money(dollar, cents);
 	}
 
 	/*
@@ -142,7 +184,13 @@ public class MDS {
 	 * description of id. Return 0 if there is no such id.
 	 */
 	public long removeNames(long id, java.util.List<Long> list) {
-		return 0;
+		Item item = tree.get(id);
+		if(item != null) {
+			item.description.removeAll(list);
+			return removeFromTable(item.price, list);
+		} else {
+			return 0;
+		}
 	}
 	
 	private void addToTable(Money price, List<Long> list) {
@@ -166,10 +214,13 @@ public class MDS {
 		}
 	}
 	
-	private void removeFromTable(Money price, List<Long> list) {
+	private long removeFromTable(Money price, List<Long> list) {
+		long total = 0;
 		for (Long descr: list) {
 			TreeMap<Money, Integer> entry = table.get(descr);
 			if (entry != null) {
+				total += descr;
+
 				Integer count = entry.get(price);
 				if(count != null) {
 					if(count == 1) {
@@ -180,13 +231,10 @@ public class MDS {
 						entry.replace(price, count.intValue() - 1);
 					}
 					
-				} else {
-					System.out.println("ERROR : Price not found. Shouldnt have landed in here");					
 				}
-			} else {
-				System.out.println("ERROR : Descr not found. Shouldnt have landed in here");
 			}
 		}
+		return total;
 	}
 
 	private Money ZeroDollars() {
@@ -249,6 +297,21 @@ public class MDS {
 
 		public String toString() {
 			return d + "." + c;
+		}
+		
+		private double hikeBy(double rate) {
+			double price = d*100+c;
+			double oldPrice = d + 0.01*c;
+			
+			price += price*rate;
+			
+			price = Math.floor(price);
+			double temp = price/100;
+			d = (int)temp;
+			c = (int)((temp-d)*100);
+			
+			return (temp - oldPrice);
+			
 		}
 	}
 
