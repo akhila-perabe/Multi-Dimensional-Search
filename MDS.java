@@ -10,7 +10,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.TreeMap;
-
+import java.util.HashSet;
+import  java.util.Set;
 
 public class MDS {
 
@@ -187,11 +188,18 @@ public class MDS {
 	 * description of id. Return 0 if there is no such id.
 	 */
 
-	public long removeNames(long id, java.util.List<Long> list) {
+	public long removeNames(long id, List<Long> list) {
 		Item item = tree.get(id);
 		if(item != null) {
-			item.description.removeAll(list);
-			return removeFromTable(item.price, list);
+			List<Long> validDescr = new ArrayList<>();
+			Set<Long> descriptions = new HashSet<>(item.description);
+			for(Long desc : list){
+				if(descriptions.contains(desc)){
+					validDescr.add(desc);
+				}
+			}
+			if(validDescr.size()==0) return 0;
+			return removeFromTable(item.price, validDescr);
 		} else {
 			return 0;
 		}
@@ -308,6 +316,8 @@ public class MDS {
 			double price = d*100+c;
 			double oldPrice = d + 0.01*c;
 
+
+
 			price += price*rate;
 
 			price = Math.floor(price);
@@ -318,6 +328,16 @@ public class MDS {
 			c = (int)rem;
 			return (temp - oldPrice);
 
+			/*long price = d*100+c;
+			String r= String.valueOf(rate);
+			String[] tokens = r.split(".");
+			StringBuffer sb = new StringBuffer();
+			sb.append(tokens[0]);
+			if(tokens.length==2){
+				sb.append(tokens[1]);
+			}
+            long r = Long.parseLong(sb.toString());
+			*/
 		}
 	}
 
