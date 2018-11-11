@@ -12,23 +12,24 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.HashSet;
 import  java.util.Set;
+import java.util.Map;
 
 public class MDS {
 
 	public class Item {
 		Long id;
 		Money price;
-		List<Long> description;
+		Set<Long> description;
 
 		public Item (Long id, Money price, List<Long> description) {
 			this.id = id;
 			this.price = price;
-			this.description =  new ArrayList<>(description);
+			this.description =  new HashSet<>(description);
 		}
 
 		public void updateItem(Money price, List<Long> description) {
 			if(description!=null && description.size()!=0) {
-				this.description = new ArrayList<>(description);
+				this.description = new HashSet<>(description);
 			}
 			this.price = price;
 		}
@@ -67,7 +68,7 @@ public class MDS {
 		} else {
 			// New element
 			tree.put(id, new Item(id, price, list));
-			addToTable(price, list);
+			addToTable(price, new HashSet<>(list));
 			return 1;
 		}
 	}
@@ -132,6 +133,9 @@ public class MDS {
 	 * given range, [low, high].
 	 */
 	public int findPriceRange(long n, Money low, Money high) {
+	    if(n==2179){
+	        System.out.println("l");
+        }
 		TreeMap<Money, Integer> item = table.get(n);
 		if (item != null) {
 			if (low.compareTo(high) > 0) {
@@ -139,7 +143,14 @@ public class MDS {
 				low = high;
 				high = temp;
 			}
-			return item.subMap(low, high).size();
+			Set<Money> prices =  item.subMap(low, high).keySet();
+			int count = 0;
+			if(prices.size()>0){
+                for(Money price : prices){
+                    count+=item.get(price);
+                }
+            }
+            return count;
 		} else {
 			return 0;
 		}
@@ -164,13 +175,10 @@ public class MDS {
 		for(Item item: map.values()) {
 			//Remove the current price from table
 			removeFromTable(item.price, item.description);
-
 			//Update price
 			totalHike += item.price.hikeBy(rate);
-
-			//Add the new price
+			//Add the c price
 			addToTable(item.price, item.description);
-
 		}
 
 		totalHike = Math.floor(totalHike*100);
@@ -191,21 +199,24 @@ public class MDS {
 	public long removeNames(long id, List<Long> list) {
 		Item item = tree.get(id);
 		if(item != null) {
-			List<Long> validDescr = new ArrayList<>();
-			Set<Long> descriptions = new HashSet<>(item.description);
+			Set<Long> validDescr = new HashSet<>();
+			Set<Long> descriptions = item.description;
 			for(Long desc : list){
 				if(descriptions.contains(desc)){
 					validDescr.add(desc);
 				}
 			}
 			if(validDescr.size()==0) return 0;
+			for(Long des : validDescr){
+			    descriptions.remove(des);
+            }
 			return removeFromTable(item.price, validDescr);
 		} else {
 			return 0;
 		}
 	}
 
-	private void addToTable(Money price, List<Long> list) {
+	private void addToTable(Money price, Set<Long> list) {
 		for (Long descr: list) {
 			TreeMap<Money, Integer> entry = table.get(descr);
 			if (entry == null ) {
@@ -223,10 +234,17 @@ public class MDS {
 					entry.replace(price, count.intValue() + 1);
 				}
 			}
-		}
+          /*  if(descr==2179){
+                if(price.d==8 && price.c==39){
+                    System.out.println("ad");
+                }
+                System.out.print(table.get(descr).keySet() + " ");
+            }*/
+
+        }
 	}
 
-	private long removeFromTable(Money price, List<Long> list) {
+	private long removeFromTable(Money price, Set<Long> list) {
 		long total = 0;
 		for (Long descr: list) {
 			TreeMap<Money, Integer> entry = table.get(descr);
@@ -315,29 +333,15 @@ public class MDS {
 		private double hikeBy(double rate) {
 			double price = d*100+c;
 			double oldPrice = d + 0.01*c;
-
-
-
 			price += price*rate;
-
 			price = Math.floor(price);
 			double temp = price/100;
 			double rem = price%100; //have to check
 			d = (int)temp;
-			//c = (int)((temp-d)*100);
-			c = (int)rem;
+			c = (int)((temp-d)*100);
+			//c = (int)rem;
 			return (temp - oldPrice);
 
-			/*long price = d*100+c;
-			String r= String.valueOf(rate);
-			String[] tokens = r.split(".");
-			StringBuffer sb = new StringBuffer();
-			sb.append(tokens[0]);
-			if(tokens.length==2){
-				sb.append(tokens[1]);
-			}
-            long r = Long.parseLong(sb.toString());
-			*/
 		}
 	}
 
