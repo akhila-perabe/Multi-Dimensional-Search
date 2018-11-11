@@ -1,6 +1,6 @@
-/** 
- * @author Akhila Perabe (axp178830), Pooja Srinivasan (pxs176230), Shreeya Girish Degaonkar (sxd174830) 
- * Multi Dimensional Search algorithm 
+/**
+ * @author Akhila Perabe (axp178830), Pooja Srinivasan (pxs176230), Shreeya Girish Degaonkar (sxd174830)
+ * Multi Dimensional Search algorithm
  */
 
 package axp178830;
@@ -13,30 +13,30 @@ import java.util.TreeMap;
 
 
 public class MDS {
-	
+
 	public class Item {
 		Long id;
 		Money price;
 		List<Long> description;
-		
+
 		public Item (Long id, Money price, List<Long> description) {
 			this.id = id;
 			this.price = price;
 			this.description =  new ArrayList<>(description);
 		}
-		
+
 		public void updateItem(Money price, List<Long> description) {
 			if(description!=null && description.size()!=0) {
-				this.description = new ArrayList<>(description); 
+				this.description = new ArrayList<>(description);
 			}
 			this.price = price;
 		}
-		
+
 		public String toString() {
 			return "{Id=" + id + ", Price=" + price + ", Description=" + description + "]}";
 		}
 	}
-	
+
 	TreeMap<Long, Item> tree;
 	HashMap<Long, TreeMap<Money, Integer>> table;
 
@@ -59,9 +59,9 @@ public class MDS {
 		Item item = tree.get(id);
 		if(item != null) {
 			//Element already exists
-			item.updateItem(price, list);
 			removeFromTable(item.price, item.description);
-			addToTable(price, list);
+			item.updateItem(price, list);
+			addToTable(item.price, item.description);
 			return 0;
 		} else {
 			// New element
@@ -101,6 +101,9 @@ public class MDS {
 	 * such item.
 	 */
 	public Money findMinPrice(long n) {
+		if(n==1389) {
+			System.out.println("hello");
+		}
 		TreeMap<Money, Integer> item = table.get(n);
 		if (item != null) {
 			return item.firstKey();
@@ -138,7 +141,7 @@ public class MDS {
 			return item.subMap(low, high).size();
 		} else {
 			return 0;
-		}	
+		}
 	}
 
 	/*
@@ -154,23 +157,23 @@ public class MDS {
 		}
 		NavigableMap<Long,Item> map = tree.subMap(l, true, h, true);
 		double totalHike = 0;
-		
+
 		rate = rate/100;
-		
+
 		for(Item item: map.values()) {
 			//Remove the current price from table
 			removeFromTable(item.price, item.description);
-			
+
 			//Update price
 			totalHike += item.price.hikeBy(rate);
-			
+
 			//Add the new price
 			addToTable(item.price, item.description);
-			
+
 		}
-		
+
 		totalHike = Math.floor(totalHike*100);
-		
+
 		double temp = totalHike/100;
 		int dollar = (int)temp;
 		int cents = (int)((temp - dollar)*100);
@@ -183,6 +186,7 @@ public class MDS {
 	 * description. Return the sum of the numbers that are actually deleted from the
 	 * description of id. Return 0 if there is no such id.
 	 */
+
 	public long removeNames(long id, java.util.List<Long> list) {
 		Item item = tree.get(id);
 		if(item != null) {
@@ -192,7 +196,7 @@ public class MDS {
 			return 0;
 		}
 	}
-	
+
 	private void addToTable(Money price, List<Long> list) {
 		for (Long descr: list) {
 			TreeMap<Money, Integer> entry = table.get(descr);
@@ -213,7 +217,7 @@ public class MDS {
 			}
 		}
 	}
-	
+
 	private long removeFromTable(Money price, List<Long> list) {
 		long total = 0;
 		for (Long descr: list) {
@@ -226,11 +230,12 @@ public class MDS {
 					if(count == 1) {
 						//Remove price when only 1 item for this price
 						entry.remove(price);
+						if(entry.size()==0) table.remove(descr);
 					} else {
 						//Update price count
 						entry.replace(price, count.intValue() - 1);
 					}
-					
+
 				}
 			}
 		}
@@ -240,7 +245,7 @@ public class MDS {
 	private Money ZeroDollars() {
 		return new Money(0,0);
 	}
-	
+
 	// Do not modify the Money class in a way that breaks LP3Driver.java
 	public static class Money implements Comparable<Money> {
 		long d;
@@ -298,20 +303,21 @@ public class MDS {
 		public String toString() {
 			return d + "." + c;
 		}
-		
+
 		private double hikeBy(double rate) {
 			double price = d*100+c;
 			double oldPrice = d + 0.01*c;
-			
+
 			price += price*rate;
-			
+
 			price = Math.floor(price);
 			double temp = price/100;
+			double rem = price%100; //have to check
 			d = (int)temp;
-			c = (int)((temp-d)*100);
-			
+			//c = (int)((temp-d)*100);
+			c = (int)rem;
 			return (temp - oldPrice);
-			
+
 		}
 	}
 
