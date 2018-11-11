@@ -204,7 +204,6 @@ public class MDS {
 			for(Long desc : list){
 				if(descriptions.contains(desc)){
 					validDescr.add(desc);
-					item.description.remove(desc);
 				}
 			}
 			if(validDescr.size()==0) return 0;
