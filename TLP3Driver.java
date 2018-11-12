@@ -22,7 +22,7 @@ public class TLP3Driver {
         } else {
             in = new Scanner(System.in);
         }
-        boolean VERBOSE = false;
+        boolean VERBOSE = true;
         boolean dots = false;
         if (args.length > 1) { VERBOSE = Boolean.parseBoolean(args[1]); }
         if (args.length > 2) { dots = true; }

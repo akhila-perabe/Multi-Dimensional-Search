@@ -5,14 +5,7 @@
 
 package axp178830;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.NavigableMap;
-import java.util.TreeMap;
-import java.util.HashSet;
-import  java.util.Set;
-import java.util.Map;
+import java.util.*;
 
 public class MDS {
 
@@ -133,21 +126,23 @@ public class MDS {
 	 * given range, [low, high].
 	 */
 	public int findPriceRange(long n, Money low, Money high) {
-	    if(n==2179){
-	        System.out.println("l");
-        }
 		TreeMap<Money, Integer> item = table.get(n);
+		if(n==1654){
+			System.out.println("adf");
+		}
 		if (item != null) {
-			if (low.compareTo(high) > 0) {
-				Money temp = low;
-				low = high;
-				high = temp;
+		    if (low.compareTo(high) > 0) {
+				return 0;
 			}
-			Set<Money> prices =  item.subMap(low, high).keySet();
+			SortedMap<Money,Integer> priceMap =  item.subMap(low,true, high,true);
 			int count = 0;
-			if(prices.size()>0){
-                for(Money price : prices){
-                    count+=item.get(price);
+			if(priceMap.size()>0){
+                Iterator<Map.Entry<Money, Integer>> itr = priceMap.entrySet().iterator();
+
+                while(itr.hasNext())
+                {
+                    Map.Entry<Money, Integer> entry = itr.next();
+                    count+=entry.getValue();
                 }
             }
             return count;
@@ -162,11 +157,11 @@ public class MDS {
 	 * Returns the sum of the net increases of the prices.
 	 */
 	public Money priceHike(long l, long h, double rate) {
-		if (l > h) {
+	/*	if (l > h) {
 			long temp = l;
 			l = h;
 			h = temp;
-		}
+		}*/
 		NavigableMap<Long,Item> map = tree.subMap(l, true, h, true);
 		double totalHike = 0;
 
@@ -217,6 +212,7 @@ public class MDS {
 	}
 
 	private void addToTable(Money price, Set<Long> list) {
+
 		for (Long descr: list) {
 			TreeMap<Money, Integer> entry = table.get(descr);
 			if (entry == null ) {
@@ -231,15 +227,12 @@ public class MDS {
 					entry.put(price, 1);
 				} else {
 					//Update price counts
-					entry.replace(price, count.intValue() + 1);
+                    int val = entry.get(price);
+                    entry.put(price,val+1);
+					//entry.replace(price, count.intValue() + 1);
 				}
 			}
-          /*  if(descr==2179){
-                if(price.d==8 && price.c==39){
-                    System.out.println("ad");
-                }
-                System.out.print(table.get(descr).keySet() + " ");
-            }*/
+
 
         }
 	}
