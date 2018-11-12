@@ -200,7 +200,7 @@ public class MDS {
 		totalHike = Math.floor(totalHike*100);
 
 		double temp = totalHike/100;
-		int dollar = (int)temp;
+		long dollar = (long)temp;
 		int cents = (int)((temp - dollar)*100);
 		return new Money(dollar, cents);
 	}
