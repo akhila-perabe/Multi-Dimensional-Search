@@ -5,6 +5,8 @@
 
 package axp178830;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 public class MDS {
@@ -35,7 +37,9 @@ public class MDS {
 	TreeMap<Long, Item> tree;
 	HashMap<Long, TreeMap<Money, Integer>> table;
 
-	// Constructors
+	/**
+	 *  Constructor
+	 */
 	public MDS() {
 		tree = new TreeMap<>();
 		table = new HashMap<>();
@@ -43,12 +47,19 @@ public class MDS {
 
 	/*
 	 * Public methods of MDS. Do not change their signatures.
-	 * __________________________________________________________________ a.
-	 * Insert(id,price,list): insert a new item whose description is given in the
+	 * __________________________________________________________________
+	 */
+	
+	/**
+	 * a. Insert(id,price,list): insert a new item whose description is given in the
 	 * list. If an entry with the same id already exists, then its description and
 	 * price are replaced by the new values, unless list is null or empty, in which
 	 * case, just the price is updated. Returns 1 if the item is new, and 0
 	 * otherwise.
+	 * @param id
+	 * @param price
+	 * @param list
+	 * @return
 	 */
 	public int insert(long id, Money price, List<Long> list) {
 		Item item = tree.get(id);
@@ -66,7 +77,11 @@ public class MDS {
 		}
 	}
 
-	// b. Find(id): return price of item with given id (or 0, if not found).
+	/**
+	 *  b. Find(id): return price of item with given id (or 0, if not found).
+	 * @param id
+	 * @return
+	 */
 	public Money find(long id) {
 		Item item = tree.get(id);
 		if (item != null)
@@ -75,10 +90,11 @@ public class MDS {
 			return ZeroDollars();
 	}
 
-	/*
+	/**
 	 * c. Delete(id): delete item from storage. Returns the sum of the long ints
 	 * that are in the description of the item deleted, or 0, if such an id did not
-	 * exist.
+	 * exist.	 * @param id
+	 * @return
 	 */
 	public long delete(long id) {
 		Item item = tree.remove(id);
@@ -89,16 +105,15 @@ public class MDS {
 		}
 	}
 
-	/*
+	/**
 	 * d. FindMinPrice(n): given a long int, find items whose description contains
 	 * that number (exact match with one of the long ints in the item's
 	 * description), and return lowest price of those items. Return 0 if there is no
 	 * such item.
+	 * @param n
+	 * @return
 	 */
 	public Money findMinPrice(long n) {
-		if(n==1389) {
-			System.out.println("hello");
-		}
 		TreeMap<Money, Integer> item = table.get(n);
 		if (item != null) {
 			return item.firstKey();
@@ -107,10 +122,12 @@ public class MDS {
 		}
 	}
 
-	/*
+	/**
 	 * e. FindMaxPrice(n): given a long int, find items whose description contains
 	 * that number, and return highest price of those items. Return 0 if there is no
 	 * such item.
+	 * @param n
+	 * @return
 	 */
 	public Money findMaxPrice(long n) {
 		TreeMap<Money, Integer> item = table.get(n);
@@ -120,30 +137,31 @@ public class MDS {
 			return ZeroDollars();
 		}	}
 
-	/*
+	/**
 	 * f. FindPriceRange(n,low,high): given a long int n, find the number of items
 	 * whose description contains n, and in addition, their prices fall within the
 	 * given range, [low, high].
+	 * @param n
+	 * @param low
+	 * @param high
+	 * @return
 	 */
 	public int findPriceRange(long n, Money low, Money high) {
-		TreeMap<Money, Integer> item = table.get(n);
-		if(n==1654){
-			System.out.println("adf");
+		
+		// If given range is invalid
+	    if (low.compareTo(high) > 0) {
+			return 0;
 		}
+	    
+		TreeMap<Money, Integer> item = table.get(n);
 		if (item != null) {
-		    if (low.compareTo(high) > 0) {
-				return 0;
-			}
-			SortedMap<Money,Integer> priceMap =  item.subMap(low,true, high,true);
 			int count = 0;
-			if(priceMap.size()>0){
-                Iterator<Map.Entry<Money, Integer>> itr = priceMap.entrySet().iterator();
-
-                while(itr.hasNext())
-                {
-                    Map.Entry<Money, Integer> entry = itr.next();
-                    count+=entry.getValue();
-                }
+			SortedMap<Money,Integer> priceMap =  item.subMap(low, true, high, true);
+            Iterator<Map.Entry<Money, Integer>> itr = priceMap.entrySet().iterator();
+            while(itr.hasNext())
+            {
+                Map.Entry<Money, Integer> entry = itr.next();
+                count+=entry.getValue();
             }
             return count;
 		} else {
@@ -151,17 +169,20 @@ public class MDS {
 		}
 	}
 
-	/*
+	/**
 	 * g. PriceHike(l,h,r): increase the price of every product, whose id is in the
 	 * range [l,h] by r%. Discard any fractional pennies in the new prices of items.
 	 * Returns the sum of the net increases of the prices.
+	 * @param l
+	 * @param h
+	 * @param rate
+	 * @return
 	 */
 	public Money priceHike(long l, long h, double rate) {
-	/*	if (l > h) {
-			long temp = l;
-			l = h;
-			h = temp;
-		}*/
+		if(l > h) {
+			return ZeroDollars();
+		}
+		
 		NavigableMap<Long,Item> map = tree.subMap(l, true, h, true);
 		double totalHike = 0;
 
@@ -172,7 +193,7 @@ public class MDS {
 			removeFromTable(item.price, item.description);
 			//Update price
 			totalHike += item.price.hikeBy(rate);
-			//Add the c price
+			//Add the new price to table
 			addToTable(item.price, item.description);
 		}
 
@@ -184,35 +205,41 @@ public class MDS {
 		return new Money(dollar, cents);
 	}
 
-	/*
+	/**
 	 * h. RemoveNames(id, list): Remove elements of list from the description of id.
 	 * It is possible that some of the items in the list are not in the id's
 	 * description. Return the sum of the numbers that are actually deleted from the
 	 * description of id. Return 0 if there is no such id.
+	 * @param id
+	 * @param list
+	 * @return
 	 */
-
 	public long removeNames(long id, List<Long> list) {
 		Item item = tree.get(id);
 		if(item != null) {
 			Set<Long> validDescr = new HashSet<>();
 			Set<Long> descriptions = item.description;
 			for(Long desc : list){
-				if(descriptions.contains(desc)){
+				boolean removed = descriptions.remove(desc);
+				if(removed){
 					validDescr.add(desc);
 				}
 			}
 			if(validDescr.size()==0) return 0;
-			for(Long des : validDescr){
-			    descriptions.remove(des);
-            }
 			return removeFromTable(item.price, validDescr);
 		} else {
 			return 0;
 		}
 	}
 
-	private void addToTable(Money price, Set<Long> list) {
+	/**
+	 * Add the price to the table for all the elements in the given list
+	 * @param money
+	 * @param list
+	 */
+	private void addToTable(Money money, Set<Long> list) {
 
+		Money price = new Money(money.d, money.c);
 		for (Long descr: list) {
 			TreeMap<Money, Integer> entry = table.get(descr);
 			if (entry == null ) {
@@ -227,16 +254,18 @@ public class MDS {
 					entry.put(price, 1);
 				} else {
 					//Update price counts
-                    int val = entry.get(price);
-                    entry.put(price,val+1);
-					//entry.replace(price, count.intValue() + 1);
+                    entry.put(price,count.intValue()+1);
 				}
 			}
-
-
         }
 	}
 
+	/**
+	 * Removes the price for all elements in the given list
+	 * @param price
+	 * @param list
+	 * @return
+	 */
 	private long removeFromTable(Money price, Set<Long> list) {
 		long total = 0;
 		for (Long descr: list) {
@@ -252,20 +281,25 @@ public class MDS {
 						if(entry.size()==0) table.remove(descr);
 					} else {
 						//Update price count
-						entry.replace(price, count.intValue() - 1);
+						entry.put(price, count.intValue() - 1);
 					}
-
 				}
 			}
 		}
 		return total;
 	}
 
+	/**
+	 * Returns a  zero dollar object
+	 * @return
+	 */
 	private Money ZeroDollars() {
 		return new Money(0,0);
 	}
 
-	// Do not modify the Money class in a way that breaks LP3Driver.java
+	/**
+	 *   Money class
+	 */
 	public static class Money implements Comparable<Money> {
 		long d;
 		int c;
@@ -318,23 +352,39 @@ public class MDS {
 				}
 			}
 		}
+		
+		public boolean equals(Object o) {
+			    if (o == this) {
+			      return true;
+			    }
+			    if (!(o instanceof Money)) {
+			      return false;
+			    }
+			    Money m = (Money)o;
+			    if(m.d == this.d && m.c == this.c)
+			    	return true;
+			    else
+			    	return false;
+		}
 
 		public String toString() {
 			return d + "." + c;
 		}
 
 		private double hikeBy(double rate) {
-			double price = d*100+c;
-			double oldPrice = d + 0.01*c;
-			price += price*rate;
-			price = Math.floor(price);
-			double temp = price/100;
-			double rem = price%100; //have to check
-			d = (int)temp;
-			c = (int)((temp-d)*100);
-			//c = (int)rem;
-			return (temp - oldPrice);
-
+			BigDecimal hundred = new BigDecimal(100);
+			BigDecimal dollar = new BigDecimal(d);
+			BigDecimal cent = new BigDecimal(c);
+			BigDecimal price = dollar.multiply(hundred).add(cent);
+			BigDecimal oldPrice = price.divide(hundred);
+			
+			price = price.add(price.multiply(new BigDecimal(rate)));
+			price = price.setScale(0, RoundingMode.FLOOR);
+			BigDecimal[] arr = price.divideAndRemainder(hundred);
+			d = arr[0].longValue();
+			c = arr[1].intValue();
+			
+			return price.divide(hundred).subtract(oldPrice).doubleValue();
 		}
 	}
 
